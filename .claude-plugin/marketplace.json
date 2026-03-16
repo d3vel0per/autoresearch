@@ -16,7 +16,10 @@
         "name": "Udit Goenka",
         "url": "https://github.com/uditgoenka"
       },
-      "source": ".",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/uditgoenka/autoresearch.git"
+      },
       "category": "productivity"
     }
   ]

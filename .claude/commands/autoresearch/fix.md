@@ -4,11 +4,11 @@ description: Autonomous fix loop — iteratively repairs errors until zero remai
 argument-hint: "[--target <cmd>] [--guard <cmd>] [--scope <glob>] [--category <type>] [--from-debug]"
 ---
 
-Load and follow the autoresearch fix workflow protocol.
+EXECUTE IMMEDIATELY — do not ask clarifying questions before reading the protocol.
 
-1. Read the skill file: `.claude/skills/autoresearch/SKILL.md` — understand the overall autoresearch framework
-2. Read the fix workflow reference: `.claude/skills/autoresearch/references/fix-workflow.md` — this is the FULL protocol to follow
-3. Parse any flags from the user's arguments: $ARGUMENTS
+1. Read the fix workflow: `.claude/skills/autoresearch/references/fix-workflow.md` — this is the FULL protocol
+2. Parse any flags from the user's arguments: $ARGUMENTS
+3. If target and scope are missing — use `AskUserQuestion` with batched questions per fix-workflow.md
 4. Execute the 8-phase fix loop as defined in `fix-workflow.md`
 
-Follow the fix workflow protocol exactly. ONE fix per iteration. Never suppress errors. Fix implementation, not tests. Auto-revert on regression.
+Follow the protocol exactly. ONE fix per iteration. Never suppress errors. Auto-revert on regression. Stream all output live — never run this in background.

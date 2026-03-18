@@ -4,11 +4,11 @@ description: Scenario-driven use case generator — explores situations, edge ca
 argument-hint: "[scenario description] [--scope <glob>] [--depth shallow|standard|deep] [--domain <type>] [--iterations N]"
 ---
 
-Load and follow the autoresearch scenario workflow protocol.
+EXECUTE IMMEDIATELY — do not ask clarifying questions before reading the protocol.
 
-1. Read the skill file: `.claude/skills/autoresearch/SKILL.md` — understand the overall autoresearch framework
-2. Read the scenario workflow reference: `.claude/skills/autoresearch/references/scenario-workflow.md` — this is the FULL protocol to follow
-3. Parse any flags from the user's arguments: $ARGUMENTS
+1. Read the scenario workflow: `.claude/skills/autoresearch/references/scenario-workflow.md` — this is the FULL protocol
+2. Parse any flags from the user's arguments: $ARGUMENTS
+3. If scenario or domain is missing — use `AskUserQuestion` with adaptive questions per scenario-workflow.md
 4. Execute the 7-phase scenario loop as defined in `scenario-workflow.md`
 
-Follow the scenario workflow protocol exactly. Every scenario requires a concrete context (who, what, when, where) and measurable coverage across happy path, edge cases, failure modes, and adversarial inputs. Every derivative scenario is logged — breadth and depth both matter.
+Follow the protocol exactly. Every scenario requires concrete context (who, what, when, where). Stream all output live — never run this in background.

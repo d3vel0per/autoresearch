@@ -4,11 +4,11 @@ description: Universal shipping workflow — ship code, content, marketing, sale
 argument-hint: "[--dry-run] [--auto] [--force] [--rollback] [--monitor N] [--type <type>] [--checklist-only]"
 ---
 
-Load and follow the autoresearch ship workflow protocol.
+EXECUTE IMMEDIATELY — do not ask clarifying questions before reading the protocol.
 
-1. Read the skill file: `.claude/skills/autoresearch/SKILL.md` — understand the overall autoresearch framework
-2. Read the ship workflow reference: `.claude/skills/autoresearch/references/ship-workflow.md` — this is the FULL protocol to follow
-3. Parse any flags from the user's arguments: $ARGUMENTS
+1. Read the ship workflow: `.claude/skills/autoresearch/references/ship-workflow.md` — this is the FULL protocol
+2. Parse any flags from the user's arguments: $ARGUMENTS
+3. If ship type is unclear — use `AskUserQuestion` with batched questions per ship-workflow.md
 4. Execute the 8-phase ship workflow as defined in `ship-workflow.md`
 
-Follow the ship workflow protocol exactly. All phases, checklists, and verification steps must be executed as documented.
+Follow the protocol exactly. All phases, checklists, and verification steps must be executed. Stream all output live — never run this in background.

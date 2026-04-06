@@ -38,6 +38,17 @@ The canonical source for all skill files is `.claude/skills/autoresearch/`. Afte
 
 This applies tool name changes (`AskUserQuestion` → `question`), command syntax (`/autoresearch:X` → `/autoresearch_X`), and frontmatter adaptations automatically.
 
+### Codex Development
+
+The canonical source is also `.claude/skills/autoresearch/`. After making changes:
+
+```bash
+# Sync changes to .agents/ with Codex adaptations
+./scripts/sync-codex.sh
+```
+
+This applies command syntax (`/autoresearch:X` → `$autoresearch X`), removes `AskUserQuestion` references, updates path references, and adds Codex-compatible frontmatter with `agents/openai.yaml` metadata.
+
 ## Repository Structure
 
 ```
@@ -57,9 +68,14 @@ autoresearch/
 │   ├── skills/autoresearch/                       ← Adapted SKILL.md + references
 │   ├── commands/autoresearch*.md                  ← 10 command files
 │   └── agents/docs-manager.md                     ← Subagent for learn workflow
+├── .agents/skills/autoresearch/                   ← CODEX PORT — generated via sync-codex.sh
+│   ├── SKILL.md                                   ← Adapted SKILL.md + references
+│   ├── references/                                ← 12 workflow protocol files
+│   └── agents/openai.yaml                         ← Codex UI metadata
 ├── scripts/
-│   ├── install.sh                                 ← Guided installer (Claude Code + OpenCode)
+│   ├── install.sh                                 ← Guided installer (Claude Code + OpenCode + Codex)
 │   ├── sync-opencode.sh                           ← Sync .claude/ → .opencode/
+│   ├── sync-codex.sh                              ← Sync .claude/ → .agents/
 │   ├── release.sh                                 ← Release automation
 │   └── release.md                                 ← Release checklist
 ├── guide/                                         ← Comprehensive guides — one per command

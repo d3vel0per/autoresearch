@@ -21,6 +21,7 @@ Usage: ./scripts/install.sh [options]
 Options:
   --claude            Install for Claude Code
   --opencode          Install for OpenCode
+  --codex             Install for OpenAI Codex
   -g, --global        Install globally
   -l, --local         Install in the current project
   -c, --config-dir    Override the global config directory
@@ -31,6 +32,7 @@ Examples:
   ./scripts/install.sh                          # interactive
   ./scripts/install.sh --claude --global
   ./scripts/install.sh --opencode --local
+  ./scripts/install.sh --codex --global
 EOF
 }
 
@@ -56,6 +58,9 @@ parse_args() {
       --opencode)
         if [[ -n "$TOOL" && "$TOOL" != "opencode" ]]; then die "choose only one tool"; fi
         TOOL="opencode" ;;
+      --codex)
+        if [[ -n "$TOOL" && "$TOOL" != "codex" ]]; then die "choose only one tool"; fi
+        TOOL="codex" ;;
       -g|--global)
         if [[ -n "$LOCATION" && "$LOCATION" != "global" ]]; then die "choose --global or --local"; fi
         LOCATION="global" ;;
@@ -95,6 +100,9 @@ get_global_dir() {
       elif [[ -n "${OPENCODE_CONFIG:-}" ]]; then dirname "$(expand_path "$OPENCODE_CONFIG")"
       elif [[ -n "${XDG_CONFIG_HOME:-}" ]]; then printf '%s\n' "$(expand_path "$XDG_CONFIG_HOME")/opencode"
       else printf '%s\n' "$HOME/.config/opencode"; fi ;;
+    codex)
+      if [[ -n "${CODEX_HOME:-}" ]]; then expand_path "$CODEX_HOME"
+      else printf '%s\n' "$HOME/.agents"; fi ;;
   esac
 }
 
@@ -104,6 +112,7 @@ get_target_dir() {
     case "$tool" in
       claude) printf '%s\n' "$PWD/.claude" ;;
       opencode) printf '%s\n' "$PWD/.opencode" ;;
+      codex) printf '%s\n' "$PWD/.agents" ;;
     esac
     return
   fi
@@ -112,11 +121,12 @@ get_target_dir() {
 
 prompt_tool() {
   local answer
-  printf 'Select the tool to install:\n  1) Claude Code\n  2) OpenCode\nChoice [1]: '
+  printf 'Select the tool to install:\n  1) Claude Code\n  2) OpenCode\n  3) OpenAI Codex\nChoice [1]: '
   read -r answer || cancelled
   case "${answer:-1}" in
     1) TOOL="claude" ;;
     2) TOOL="opencode" ;;
+    3) TOOL="codex" ;;
     *) die "invalid selection: $answer" ;;
   esac
 }
@@ -124,7 +134,7 @@ prompt_tool() {
 prompt_location() {
   local global_dir answer local_dir
   global_dir="$(get_global_dir "$TOOL")"
-  case "$TOOL" in claude) local_dir="$PWD/.claude" ;; opencode) local_dir="$PWD/.opencode" ;; esac
+  case "$TOOL" in claude) local_dir="$PWD/.claude" ;; opencode) local_dir="$PWD/.opencode" ;; codex) local_dir="$PWD/.agents" ;; esac
   printf 'Install location:\n  1) Global (%s)\n  2) Local  (%s)\nChoice [1]: ' "$global_dir" "$local_dir"
   read -r answer || cancelled
   case "${answer:-1}" in
@@ -184,6 +194,12 @@ install_opencode() {
   sync_file "$REPO_ROOT/.opencode/agents/docs-manager.md" "$t/agents/docs-manager.md"
 }
 
+install_codex() {
+  local t="$1"
+  mkdir -p "$t/skills"
+  sync_dir "$REPO_ROOT/.agents/skills/autoresearch" "$t/skills/autoresearch"
+}
+
 main() {
   parse_args "$@"
   ensure_context
@@ -192,15 +208,19 @@ main() {
   confirm_overwrite "$target_root"
 
   local label
-  case "$TOOL" in claude) label="Claude Code" ;; opencode) label="OpenCode" ;; esac
+  case "$TOOL" in claude) label="Claude Code" ;; opencode) label="OpenCode" ;; codex) label="OpenAI Codex" ;; esac
   printf 'Installing Autoresearch for %s (%s)\nTarget: %s\n' "$label" "$LOCATION" "$target_root"
 
   case "$TOOL" in
     claude) install_claude "$target_root" ;;
     opencode) install_opencode "$target_root" ;;
+    codex) install_codex "$target_root" ;;
   esac
 
-  printf 'Done. Run /autoresearch to start.\n'
+  case "$TOOL" in
+    codex) printf 'Done. Use $autoresearch in Codex to start.\n' ;;
+    *) printf 'Done. Run /autoresearch to start.\n' ;;
+  esac
 }
 
 main "$@"

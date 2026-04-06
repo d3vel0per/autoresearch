@@ -2,7 +2,7 @@
 
 **By [Udit Goenka](https://udit.co)**
 
-Autoresearch turns [Claude Code](https://docs.anthropic.com/en/docs/claude-code) or [OpenCode](https://opencode.ai) into an autonomous improvement engine. Based on [Karpathy's autoresearch](https://github.com/karpathy/autoresearch), it follows one simple idea:
+Autoresearch turns [Claude Code](https://docs.anthropic.com/en/docs/claude-code), [OpenCode](https://opencode.ai), or [OpenAI Codex](https://developers.openai.com/codex) into an autonomous improvement engine. Based on [Karpathy's autoresearch](https://github.com/karpathy/autoresearch), it follows one simple idea:
 
 **Set a goal. Define a metric. Let Claude loop until it's done.**
 
@@ -89,9 +89,26 @@ cp autoresearch/.opencode/agents/docs-manager.md ~/.config/opencode/agents/docs-
 
 > **OpenCode commands use underscores:** `/autoresearch_debug`, `/autoresearch_fix`, `/autoresearch_plan`, etc.
 
+### Codex Installation
+
+```bash
+git clone https://github.com/uditgoenka/autoresearch.git
+cd autoresearch
+./scripts/install.sh --codex --global
+```
+
+Or manually:
+```bash
+cp -r autoresearch/.agents/skills/autoresearch ~/.agents/skills/autoresearch
+```
+
+> **Codex uses `$` mention syntax:** Type `$autoresearch` in your prompt, or `$autoresearch plan`, `$autoresearch debug`, etc. Codex discovers skills automatically from `.agents/skills/` directories.
+
 ### Verify Installation
 
-Type `/autoresearch` in Claude Code. If you see the interactive setup wizard asking about your goal, you're ready.
+- **Claude Code:** Type `/autoresearch` — if you see the interactive setup wizard, you're ready.
+- **OpenCode:** Type `/autoresearch` — same wizard with underscore commands.
+- **Codex:** Type `$autoresearch` or run `/skills` to see it listed.
 
 ### Complete Initialization (Iteration #0 — Baseline)
 
@@ -342,6 +359,9 @@ A: Yes. Any MCP server configured in Claude Code is available — databases, ana
 
 **Q: How many iterations should I run?**
 A: Depends on scope. 5-10 for targeted fixes. 15-25 for moderate improvements. 50+ for deep optimization. Unlimited for overnight runs.
+
+**Q: Does it work with OpenAI Codex?**
+A: Yes. Run `./scripts/install.sh --codex --global` or copy `.agents/skills/autoresearch/` to `~/.agents/skills/`. Use `$autoresearch` mention syntax to invoke.
 
 **Q: Does it work in CI/CD?**
 A: Yes. Use `--fail-on` (security) or bounded iterations. See [Advanced Patterns](advanced-patterns.md).

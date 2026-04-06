@@ -2,13 +2,14 @@
 
 # Autoresearch
 
-**Turn [Claude Code](https://docs.anthropic.com/en/docs/claude-code) or [OpenCode](https://opencode.ai) into a relentless improvement engine.**
+**Turn [Claude Code](https://docs.anthropic.com/en/docs/claude-code), [OpenCode](https://opencode.ai), or [OpenAI Codex](https://developers.openai.com/codex) into a relentless improvement engine.**
 
 Based on [Karpathy's autoresearch](https://github.com/karpathy/autoresearch) — constraint + mechanical metric + autonomous iteration = compounding gains.
 
 [![Claude Code Skill](https://img.shields.io/badge/Claude_Code-Skill-blue?logo=anthropic&logoColor=white)](https://docs.anthropic.com/en/docs/claude-code)
 [![OpenCode](https://img.shields.io/badge/OpenCode-Skill-purple)](https://opencode.ai)
-[![Version](https://img.shields.io/badge/version-2.0.0--beta.0.1-blue.svg)](https://github.com/uditgoenka/autoresearch/releases)
+[![Codex](https://img.shields.io/badge/Codex-Skill-green?logo=openai&logoColor=white)](https://developers.openai.com/codex)
+[![Version](https://img.shields.io/badge/version-2.0.0--beta.0.2-blue.svg)](https://github.com/uditgoenka/autoresearch/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 [![Based on](https://img.shields.io/badge/Based_on-Karpathy's_Autoresearch-orange)](https://github.com/karpathy/autoresearch)
@@ -21,7 +22,7 @@ Based on [Karpathy's autoresearch](https://github.com/karpathy/autoresearch) —
 
 *You don't need AGI. You need a goal, a metric, and a loop that never quits.*
 
-**Now supports both Claude Code and OpenCode.**
+**Now supports Claude Code, OpenCode, and OpenAI Codex.**
 
 <br>
 
@@ -122,6 +123,8 @@ Before looping, Claude performs a one-time setup:
 **All commands use interactive setup when invoked without arguments.** Just type the command — the agent will ask you what you need step by step with smart defaults based on your codebase. Power users can skip the wizard by providing flags inline.
 
 > **OpenCode users:** Commands use underscore naming (`/autoresearch_debug`, `/autoresearch_fix`, etc.) instead of colons. See [OpenCode Quick Start](#opencode-quick-start) below.
+>
+> **Codex users:** Invoke the skill via `$autoresearch` mention syntax. Subcommands are keywords: `$autoresearch plan`, `$autoresearch debug`, etc. See [Codex Quick Start](#codex-quick-start) below.
 
 ### Quick Decision Guide
 
@@ -226,6 +229,30 @@ cp autoresearch/.opencode/agents/docs-manager.md ~/.config/opencode/agents/docs-
 ```
 
 > **OpenCode command names:** Use underscores instead of colons — `/autoresearch_debug`, `/autoresearch_fix`, `/autoresearch_plan`, etc. All 10 commands are available.
+
+### Codex Quick Start
+
+**Option A — Guided installer (recommended):**
+```bash
+git clone https://github.com/uditgoenka/autoresearch.git
+cd autoresearch
+./scripts/install.sh --codex --global
+```
+
+**Option B — Manual copy:**
+```bash
+git clone https://github.com/uditgoenka/autoresearch.git
+
+# Copy to your project
+cp -r autoresearch/.agents/skills/autoresearch .agents/skills/autoresearch
+```
+
+Or install globally:
+```bash
+cp -r autoresearch/.agents/skills/autoresearch ~/.agents/skills/autoresearch
+```
+
+> **Codex invocation:** Use `$autoresearch` mention syntax in your prompt. Subcommands are keywords — `$autoresearch plan`, `$autoresearch debug`, `$autoresearch security`, etc. Codex discovers skills automatically from `.agents/skills/` directories.
 
 ### 2. Run It
 
@@ -486,8 +513,9 @@ autoresearch/
 ├── COMPARISON.md                                  ← Karpathy's Autoresearch vs Claude Autoresearch
 ├── guide/                                         ← Comprehensive guides — one per command + advanced patterns
 ├── scripts/
-│   ├── install.sh                                 ← Guided installer (Claude Code + OpenCode)
+│   ├── install.sh                                 ← Guided installer (Claude Code + OpenCode + Codex)
 │   ├── sync-opencode.sh                           ← Sync .claude/ → .opencode/ with adaptations
+│   ├── sync-codex.sh                              ← Sync .claude/ → .agents/ with Codex adaptations
 │   ├── release.sh                                 ← Release automation
 │   └── release.md                                 ← Release checklist
 ├── .claude/skills/autoresearch/                   ← Claude Code source (canonical)
@@ -497,6 +525,10 @@ autoresearch/
 │   ├── skills/autoresearch/                       ← Adapted SKILL.md + references
 │   ├── commands/                                  ← 10 command files (autoresearch_*.md)
 │   └── agents/docs-manager.md                     ← Subagent for learn workflow
+├── .agents/skills/autoresearch/                   ← Codex port (generated via sync-codex.sh)
+│   ├── SKILL.md                                   ← Adapted SKILL.md + references
+│   ├── references/                                ← 12 workflow protocol files
+│   └── agents/openai.yaml                         ← UI metadata for Codex
 ├── claude-plugin/                                 ← Distribution package (Claude Code plugin install)
 │   ├── .claude-plugin/plugin.json                 ← Plugin metadata + version
 │   ├── commands/                                  ← Command registrations
@@ -512,10 +544,13 @@ autoresearch/
 A: Run `/autoresearch:plan` — it analyzes your codebase, suggests metrics, and dry-runs the verify command before you launch.
 
 **Q: Does this work with any project?**
-A: Yes. Any language, framework, or domain. Install via `/plugin marketplace add uditgoenka/autoresearch` (Claude Code), `./scripts/install.sh --opencode --global` (OpenCode), or manually copy from the `claude-plugin/` or `.opencode/` directories.
+A: Yes. Any language, framework, or domain. Install via `/plugin marketplace add uditgoenka/autoresearch` (Claude Code), `./scripts/install.sh --opencode --global` (OpenCode), `./scripts/install.sh --codex --global` (Codex), or manually copy files.
 
 **Q: Does this work with OpenCode?**
 A: Yes, as of v2.0.0-beta. Run `./scripts/install.sh --opencode --global` or manually copy `.opencode/` files. Commands use underscore naming (`/autoresearch_debug` instead of `/autoresearch:debug`).
+
+**Q: Does this work with OpenAI Codex?**
+A: Yes, as of v2.0.0-beta.0.2. Run `./scripts/install.sh --codex --global` or copy `.agents/skills/autoresearch/` to `~/.agents/skills/`. Invoke via `$autoresearch` mention syntax in Codex.
 
 **Q: How do I stop the loop?**
 A: `Ctrl+C` or add `Iterations: N` to your inline config to run exactly N iterations. Claude commits before verifying, so your last successful state is always in git.
@@ -565,6 +600,7 @@ MIT — see [LICENSE](LICENSE).
 - **[Andrej Karpathy](https://github.com/karpathy)** — for [autoresearch](https://github.com/karpathy/autoresearch)
 - **[Anthropic](https://anthropic.com)** — for [Claude Code](https://docs.anthropic.com/en/docs/claude-code) and the skills system
 - **[OpenCode](https://opencode.ai)** — for the OpenCode terminal agent
+- **[OpenAI](https://openai.com)** — for [Codex](https://developers.openai.com/codex) and the agent skills standard
 
 ---
 

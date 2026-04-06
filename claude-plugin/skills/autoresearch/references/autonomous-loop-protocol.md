@@ -432,6 +432,9 @@ The extracted value MUST be a valid number before ANY decision logic runs. A non
 ```
 extracted_value = <result of verify pipeline>
 
+# Strip leading/trailing whitespace and newlines before validation
+extracted_value = strip(extracted_value)
+
 # Validate: must match a number (integer or float, optional leading minus)
 IF extracted_value does NOT match pattern: ^-?[0-9]+\.?[0-9]*$
     STATUS = "metric-error"

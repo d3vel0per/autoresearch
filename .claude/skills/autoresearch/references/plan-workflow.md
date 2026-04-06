@@ -175,7 +175,7 @@ Dry run result:
 | Extracted Value | Problem | Fix |
 |---|---|---|
 | `85.2%` | Trailing `%` | Add `\| tr -d '%'` to pipeline |
-| `342ms` | Trailing unit | Add `\| grep -oP '[0-9]+\.?[0-9]*'` |
+| `342ms` | Trailing unit | Add `\| grep -oE '[0-9]+\.?[0-9]*'` |
 | *(empty)* | grep matched nothing | Check the grep pattern against actual output |
 | `All files \| 85.2 \| ...` | awk field wrong | Adjust awk field index or add more specific grep |
 | Two numbers on separate lines | Pipeline too broad | Add `head -1` or tighten grep |

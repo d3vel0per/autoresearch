@@ -161,15 +161,21 @@ Before looping, Claude performs a one-time setup:
 
 ### Claude Code
 
-**Option A — Plugin install (recommended):**
+**Option A — npx install (recommended):**
+
+```bash
+npx skills add uditgoenka/autoresearch
+```
+
+That's it. All 11 commands are available after restarting Claude Code.
+
+**Option B — Plugin install:**
 
 In Claude Code, run:
 ```
 /plugin marketplace add uditgoenka/autoresearch
 /plugin install autoresearch@autoresearch
 ```
-
-That's it. All 11 commands are available after restarting Claude Code.
 
 > **Note:** Start a new Claude Code session after installing. Reference files aren't resolvable in the same session where installation happened — this is a Claude Code platform limitation.
 
@@ -180,7 +186,7 @@ That's it. All 11 commands are available after restarting Claude Code.
 
 That pulls the latest version. Run `/reload-plugins` to activate. No need to uninstall or re-clone.
 
-**Option B — Manual copy:**
+**Option C — Manual copy:**
 ```bash
 git clone https://github.com/uditgoenka/autoresearch.git
 
@@ -199,7 +205,7 @@ cp autoresearch/claude-plugin/commands/autoresearch.md ~/.claude/commands/autore
 
 > **Note:** The `commands/` directory is required for subcommands (`/autoresearch:ship`, `/autoresearch:plan`, `/autoresearch:security`) to work.
 
-**Option C — Guided installer:**
+**Option D — Guided installer:**
 ```bash
 git clone https://github.com/uditgoenka/autoresearch.git
 cd autoresearch

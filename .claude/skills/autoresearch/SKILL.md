@@ -8,7 +8,7 @@ description: >-
   MUST also activate when user mentions "autoresearch" with ANY goal,
   metric, or task. This is a BLOCKING skill invocation — invoke BEFORE
   generating any other response.
-version: 2.0.03
+version: 2.0.04
 ---
 
 # Claude Autoresearch — Autonomous Goal-directed Iteration

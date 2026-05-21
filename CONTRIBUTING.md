@@ -1,10 +1,10 @@
 # Contributing to Autoresearch
 
-Thanks for wanting to make autoresearch better. Whether you're fixing a typo, adding examples, creating a new sub-command, or improving the loop protocol — this guide will get you up and running fast.
+Whether you're fixing a typo, adding examples, creating a new sub-command, or improving the loop protocol — this guide will get you up and running.
 
 ## Quick Start
 
-Autoresearch is Markdown files that Claude Code and OpenCode discover from `skills/` and `commands/` directories. No build step, no compilation — edit a `.md` file, invoke the skill, see your changes.
+Autoresearch is Markdown files that Claude Code, OpenCode, and Codex discover from `skills/` and `commands/` directories. No build step, no compilation — edit a `.md` file, invoke the skill, see your changes.
 
 ```bash
 # 1. Clone the repo
@@ -12,318 +12,157 @@ git clone https://github.com/uditgoenka/autoresearch.git
 cd autoresearch
 
 # 2. Install via guided installer
-./scripts/install.sh --claude --global   # for Claude Code
-./scripts/install.sh --opencode --global # for OpenCode
+./scripts/install.sh --claude --global   # Claude Code
+./scripts/install.sh --opencode --global # OpenCode
+./scripts/install.sh --codex --global    # Codex
 
 # 3. Or symlink for live editing (recommended for development)
-ln -s $(pwd)/claude-plugin/skills/autoresearch ~/.claude/skills/autoresearch
-ln -s $(pwd)/claude-plugin/commands/autoresearch ~/.claude/commands/autoresearch
-ln -s $(pwd)/claude-plugin/commands/autoresearch.md ~/.claude/commands/autoresearch.md
+ln -s $(pwd)/.claude/skills/autoresearch ~/.claude/skills/autoresearch
+ln -s $(pwd)/.claude/commands/autoresearch ~/.claude/commands/autoresearch
+ln -s $(pwd)/.claude/commands/autoresearch.md ~/.claude/commands/autoresearch.md
 ```
 
-When done developing, replace symlinks with stable copies using the installer:
-```bash
-rm ~/.claude/skills/autoresearch ~/.claude/commands/autoresearch ~/.claude/commands/autoresearch.md
-./scripts/install.sh --claude --global --force
-```
+### Multi-Platform Sync
 
-### OpenCode Development
-
-The canonical source for all skill files is `.claude/skills/autoresearch/`. After making changes:
+The canonical source is `.claude/`. After making changes, run the transform to sync all platforms:
 
 ```bash
-# Sync changes to .opencode/ with OpenCode adaptations
-./scripts/sync-opencode.sh
+./scripts/transform.sh              # sync to OpenCode + Codex
+./scripts/transform.sh --opencode   # OpenCode only
+./scripts/transform.sh --codex      # Codex only
 ```
 
-This applies tool name changes (`AskUserQuestion` → `question`), command syntax (`/autoresearch:X` → `/autoresearch_X`), and frontmatter adaptations automatically.
-
-### Codex Development
-
-The canonical source is also `.claude/skills/autoresearch/`. After making changes:
-
-```bash
-# Sync changes to .agents/ with Codex adaptations
-./scripts/sync-codex.sh
-```
-
-This applies command syntax (`/autoresearch:X` → `$autoresearch X`), removes `AskUserQuestion` references, updates path references, and adds Codex-compatible frontmatter with `agents/openai.yaml` metadata.
-
-## Repository Structure
+## Repository Structure (v2.1.0)
 
 ```
 autoresearch/
-├── README.md                                      ← Project overview + quick start
-├── .gitignore                                     ← Excludes local .claude/ state
-├── .claude-plugin/
-│   └── marketplace.json                           ← Plugin marketplace manifest
-├── claude-plugin/                                 ← DISTRIBUTION — what Claude Code plugin users install
-│   ├── .claude-plugin/plugin.json                 ← Plugin metadata + version
-│   ├── commands/                                  ← Command registrations
-│   └── skills/autoresearch/                       ← Skill + 12 reference files
-├── .claude/skills/autoresearch/                   ← CANONICAL SOURCE — edit here first
-│   ├── SKILL.md                                   ← Main skill
-│   └── references/                                ← 12 workflow protocol files
-├── .opencode/                                     ← OPENCODE PORT — generated via sync-opencode.sh
-│   ├── skills/autoresearch/                       ← Adapted SKILL.md + references
-│   ├── commands/autoresearch*.md                  ← 10 command files
-│   └── agents/docs-manager.md                     ← Subagent for learn workflow
-├── .agents/skills/autoresearch/                   ← CODEX PORT — generated via sync-codex.sh
-│   ├── SKILL.md                                   ← Adapted SKILL.md + references
-│   ├── references/                                ← 12 workflow protocol files
-│   └── agents/openai.yaml                         ← Codex UI metadata
+├── .claude/                                       ← CANONICAL SOURCE — edit here first
+│   ├── skills/autoresearch/
+│   │   ├── SKILL.md                               ← Thin routing table (41 lines)
+│   │   └── references/                            ← 3 focused reference files
+│   └── commands/
+│       ├── autoresearch.md                        ← Core loop (self-contained, ~110 lines)
+│       └── autoresearch/                          ← 11 subcommand files (self-contained)
+├── .opencode/                                     ← OpenCode port (generated via transform.sh)
+├── .agents/ + plugins/                            ← Codex port (generated via transform.sh)
+├── claude-plugin/                                 ← Distribution package (Claude Code plugin install)
 ├── scripts/
-│   ├── install.sh                                 ← Guided installer (Claude Code + OpenCode + Codex)
-│   ├── sync-opencode.sh                           ← Sync .claude/ → .opencode/
-│   ├── sync-codex.sh                              ← Sync .claude/ → .agents/
+│   ├── install.sh                                 ← Guided installer (3 platforms)
+│   ├── transform.sh                               ← .claude/ → .opencode/ + .agents/ sync
 │   ├── release.sh                                 ← Release automation
 │   └── release.md                                 ← Release checklist
-├── guide/                                         ← Comprehensive guides — one per command
-│   ├── README.md                                  ← Guide index
-│   ├── getting-started.md                         ← Installation, core concepts, FAQ
-│   ├── autoresearch.md                            ← The autonomous loop
-│   ├── autoresearch-plan.md                       ← Setup wizard
-│   ├── autoresearch-debug.md                      ← Bug hunter
-│   ├── autoresearch-fix.md                        ← Error crusher
-│   ├── autoresearch-security.md                   ← Security auditor
-│   ├── autoresearch-ship.md                       ← Shipping workflow
-│   ├── autoresearch-scenario.md                   ← Scenario explorer
-│   ├── autoresearch-predict.md                    ← Multi-persona swarm prediction
-│   ├── autoresearch-learn.md                      ← Documentation engine
-│   ├── chains-and-combinations.md                 ← Multi-command pipelines
-│   ├── examples-by-domain.md                      ← Real-world examples by domain
-│   ├── advanced-patterns.md                       ← Guards, MCP, CI/CD, FAQ
-│   └── scenario/                                  ← Scenario-specific guides
-│       └── README.md                              ← Scenario guide index
-├── COMPARISON.md                                  ← Feature comparison with alternatives
-├── CONTRIBUTING.md                                ← You are here
-├── LICENSE                                        ← MIT License
-└── scripts/
-    ├── release.sh                                 ← Release script (version bump + PR + tag)
-    └── release.md                                 ← Release process documentation
+├── guide/                                         ← Guides — one per command + advanced patterns
+├── docs/                                          ← Project docs (architecture, changelog, standards)
+├── COMPARISON.md                                  ← Karpathy vs Claude Autoresearch
+└── CONTRIBUTING.md                                ← You are here
 ```
 
 ### What Each File Does
 
 | File | Purpose | Edit when... |
 |------|---------|-------------|
-| `SKILL.md` | Main entry point. Sub-command routing, setup phase, loop pseudocode, domain table. | Adding sub-commands, changing activation triggers, updating loop behavior |
-| `references/autonomous-loop-protocol.md` | 8-phase loop protocol with rules for each phase. | Changing how the loop works (review, ideate, modify, commit, verify, guard, decide, log) |
-| `references/core-principles.md` | 7 universal principles from Karpathy's autoresearch. | Refining principles or adding new ones |
-| `references/plan-workflow.md` | `/autoresearch:plan` wizard protocol. | Changing planning flow, question types, metric suggestions |
-| `references/security-workflow.md` | `/autoresearch:security` audit protocol. | Adding OWASP checks, red-team personas, report structure |
-| `references/ship-workflow.md` | `/autoresearch:ship` shipping workflow. | Adding ship types, checklists, rollback actions |
-| `references/debug-workflow.md` | `/autoresearch:debug` bug-hunting protocol. | Adding investigation techniques, bug patterns, domain checklists |
-| `references/fix-workflow.md` | `/autoresearch:fix` error repair protocol. | Adding fix strategies, anti-patterns, language-specific patterns |
-| `references/scenario-workflow.md` | `/autoresearch:scenario` scenario exploration. | Adding domains, dimensions, output formats |
-| `references/predict-workflow.md` | `/autoresearch:predict` multi-persona swarm prediction workflow (751 lines). | Adding prediction personas, confidence models, output formats |
-| `references/learn-workflow.md` | `/autoresearch:learn` documentation engine protocol. | Adding doc types, validation checks, generation templates |
-| `references/results-logging.md` | TSV log format and reporting rules. | Changing log columns, summary format, reporting intervals |
-| `claude-plugin/commands/autoresearch/*.md` | Sub-command registration files. | Adding new sub-commands (creates the `/autoresearch:name` slash command) |
-| `claude-plugin/.claude-plugin/plugin.json` | Plugin metadata + version. | Version bumps (use `scripts/release.sh`) |
-| `README.md` | Public overview, commands table, quick start. | Adding features, updating commands, documenting changes |
-| `guide/*.md` | Individual command guides, examples, advanced patterns. | Adding scenarios, command combinations, domain examples |
-| `guide/scenario/` | Scenario-specific guides and domain examples. | Adding scenario domains, edge case patterns |
-| `COMPARISON.md` | Feature comparison with alternatives. | Updating subcommand count, adding new capabilities to comparison table |
+| `.claude/skills/autoresearch/SKILL.md` | Thin routing table — subcommand list, defaults, universal flags | Adding subcommands, changing defaults |
+| `.claude/commands/autoresearch.md` | Core loop — self-contained instructions (~110 lines) | Changing loop behavior |
+| `.claude/commands/autoresearch/*.md` | Subcommand files — each self-contained with full instructions | Modifying any subcommand |
+| `references/security-checklist.md` | STRIDE + OWASP checklist (loaded by security command) | Adding security checks |
+| `references/predict-personas.md` | 5 expert personas (loaded by predict command) | Adding/modifying personas |
+| `references/reason-judge-protocol.md` | Adversarial refinement protocol (loaded by reason command) | Changing judge/critic behavior |
+| `scripts/transform.sh` | Platform transform (.claude/ → .opencode/ + .agents/) | Adding new commands or reference files |
+| `claude-plugin/` | Distribution package — synced from .claude/ during release | Don't edit directly — edit .claude/ |
 
 ## What to Contribute
 
-### High-Value Contributions
+### High-Value
 
 | Type | Examples | Difficulty |
 |------|----------|-----------|
 | **New domain examples** | Add to `guide/examples-by-domain.md` | Easy |
-| **Verification script templates** | Reusable scripts for common metrics | Easy |
+| **Verification script templates** | Reusable verify/guard commands for common metrics | Easy |
 | **Bug fixes** | Loop edge cases, incorrect behavior | Medium |
 | **New sub-commands** | `/autoresearch:refactor`, `/autoresearch:test` | Medium |
-| **New ship types** | Additional checklist types for `/autoresearch:ship` | Medium |
-| **OWASP/STRIDE additions** | New security checks for `/autoresearch:security` | Medium |
-| **New scenario domains** | Additional domain templates for `/autoresearch:scenario` | Medium |
+| **OWASP/STRIDE additions** | New security checks | Medium |
 | **Protocol improvements** | Better stuck-detection, smarter ideation | Hard |
 | **MCP integration patterns** | Database, API, analytics verification examples | Hard |
 
 ### Low-Value (Please Don't)
 
-- Reformatting or restructuring existing files without functional changes
+- Reformatting or restructuring files without functional changes
 - Adding comments to explain obvious things
-- Changing naming conventions or style
 - Whitespace-only changes
 
-## Day-to-Day Workflow
+## Adding a New Sub-Command
+
+### 1. Create the command file
+
+```
+.claude/commands/autoresearch/yourcommand.md
+```
+
+Self-contained file with: YAML frontmatter (`name`, `description`, `argument-hint`), argument parsing, setup gate, loop/phases, output, chain handoff. Target: 80-120 lines.
+
+### 2. Register in SKILL.md
+
+Add one row to the subcommands table:
+```markdown
+| `/autoresearch:yourcommand` | Description | Default iterations |
+```
+
+### 3. Create reference file (only if needed by 3+ commands)
+
+Only create a reference in `references/` if shared by multiple commands. Single-command logic stays in the command file.
+
+### 4. Run transform + update docs
 
 ```bash
-# 1. Fork and clone
-gh repo fork uditgoenka/autoresearch --clone
-cd autoresearch
-
-# 2. Create a feature branch
-git checkout -b feat/your-feature-name
-
-# 3. Symlink for live testing
-ln -s $(pwd)/claude-plugin/skills/autoresearch ~/.claude/skills/autoresearch
-ln -s $(pwd)/claude-plugin/commands/autoresearch ~/.claude/commands/autoresearch
-ln -s $(pwd)/claude-plugin/commands/autoresearch.md ~/.claude/commands/autoresearch.md
-
-# 4. Make your changes
-# Edit skill files, reference files, commands, docs, etc.
-
-# 5. Test in Claude Code (changes are live via symlink)
-# Open Claude Code in any project and invoke the relevant command
-
-# 6. Commit with conventional format
-git add -A
-git commit -m "feat: add guard rework timeout after 60 seconds"
-
-# 7. Push and create PR
-git push -u origin feat/your-feature-name
-gh pr create --title "feat: your feature" --body "## Summary\n- What changed\n- Why"
+./scripts/transform.sh   # sync to OpenCode + Codex
 ```
+
+Update: README.md (commands table), guide/ (new guide file), COMPARISON.md (subcommand count).
 
 ## Commit Messages
 
-We use [conventional commits](https://www.conventionalcommits.org/):
+[Conventional commits](https://www.conventionalcommits.org/):
 
 | Prefix | When |
 |--------|------|
 | `feat:` | New feature or sub-command |
-| `fix:` | Bug fix in existing behavior |
-| `docs:` | Documentation-only changes |
+| `fix:` | Bug fix |
+| `docs:` | Documentation-only |
 | `refactor:` | Restructuring without behavior change |
-| `chore:` | Maintenance (CI, config, tooling, version bumps) |
+| `chore:` | Maintenance, version bumps |
 
 ## Pull Request Guidelines
 
 1. **One PR = one feature.** Don't bundle unrelated changes.
 2. **Branch from `master`.** Target `master` as base.
-3. **Descriptive title.** Use conventional commit format.
-4. **Write a good body.** Explain what changed, why, and how to test it.
-5. **Update docs.** If you add a feature, update the relevant docs:
-   - `SKILL.md` — register sub-commands, update activation triggers
-   - `README.md` — commands table, quick decision guide, repo structure, FAQ
-   - `guide/` — add individual command guide or update existing ones
-   - `guide/scenario/` — update scenario guides if adding new domains or patterns
-   - `guide/examples-by-domain.md` — add copy-paste examples for new features
-   - `COMPARISON.md` — update subcommand count and feature comparison table
-6. **Don't bump the version.** Maintainers handle version bumps via `scripts/release.sh`.
-7. **Keep files focused.** Don't modify files unrelated to your change.
+3. **Run `scripts/transform.sh`** after any changes to `.claude/`.
+4. **Update docs** — README, guide, COMPARISON as needed.
+5. **Don't bump the version.** Maintainers handle via `scripts/release.sh`.
 
-### PR Template
+## Testing
 
-```markdown
-## Summary
-- What changed and why
+No automated tests — autoresearch is Markdown instructions. Testing means using it:
 
-## Files Changed
-| File | Change |
-|------|--------|
-| `references/fix-workflow.md` | Added Rust-specific fix strategies |
-| `EXAMPLES.md` | Added Rust examples section |
-
-## How to Test
-1. Symlink skill to ~/.claude/skills/autoresearch
-2. Run /autoresearch:fix in a Rust project
-3. Verify Rust-specific strategies are applied
-```
-
-## Adding a New Sub-Command
-
-Follow this pattern when adding a command like `/autoresearch:yourcommand`:
-
-### 1. Create the reference file
-
-```
-claude-plugin/skills/autoresearch/references/your-workflow.md
-```
-
-Contains: full protocol, phases, rules, examples, flags, error recovery, composite metric, output directory structure.
-
-### 2. Create the command registration file
-
-```
-claude-plugin/commands/autoresearch/yourcommand.md
-```
-
-This thin wrapper tells Claude Code to load SKILL.md + your reference file and execute the workflow.
-
-### 3. Register in SKILL.md
-
-Add to the subcommands table:
-```markdown
-| `/autoresearch:yourcommand` | Description of what it does |
-```
-
-Add a full sub-command section with:
-- `Load: references/your-workflow.md` directive
-- Numbered phase summary
-- Usage examples with flags
-- Key behaviors and composite metric
-
-Add to the "When to Activate" section:
-```markdown
-- User invokes `/autoresearch:yourcommand` → run your workflow
-- User says "relevant trigger phrases" → run your workflow
-```
-
-Add to the interactive setup gate table.
-
-### 4. Update all docs
-
-| Doc | What to Update |
-|-----|---------------|
-| `README.md` | Commands table, Quick Decision Guide, dedicated section, repo structure, FAQ |
-| `guide/` | Individual command guide, chains-and-combinations, examples-by-domain, advanced-patterns |
-| `guide/scenario/` | Scenario guide chain suggestions (if relevant to scenario workflows) |
-| `COMPARISON.md` | Update subcommand count and feature comparison table |
-| `CONTRIBUTING.md` | Repo structure tree, "What Each File Does" table |
-
-## Testing Your Changes
-
-No automated test suite — autoresearch is Markdown instructions, not code. Testing means using it:
-
-1. **Symlink your working tree** (see Quick Start)
-2. **Open Claude Code in a real project**
-3. **Invoke the skill** (`/autoresearch`, `/autoresearch:plan`, etc.)
-4. **Verify behavior matches your changes**
-5. **Try edge cases** — wrong metric? Scope matches 0 files? Guard always fails?
-
-### What to Check
-
-- Does Claude follow your updated instructions?
-- Does the output format match your specification?
-- Are error cases handled gracefully?
-- Does backward compatibility hold? (Existing commands still work)
-- Does the interactive setup ask the right questions?
+1. Symlink your working tree (see Quick Start)
+2. Open Claude Code in a real project
+3. Invoke the command (`/autoresearch`, `/autoresearch:plan`, etc.)
+4. Verify behavior matches your changes
+5. Try edge cases — wrong metric? 0 files in scope? Guard always fails?
 
 ## Release Process
 
-Maintainers use `scripts/release.sh` to handle releases. See `scripts/release.md` for full documentation.
+Maintainers use `scripts/release.sh`. See `scripts/release.md` for details.
 
 ```bash
-# Patch release (bugfixes, docs updates)
-./scripts/release.sh 1.7.1 --title "Fix scenario timeout"
-
-# Minor release (new features, new commands)
-./scripts/release.sh 1.7.0 --title "New Sub-Command Name"
+./scripts/release.sh 2.2.0 --title "New Feature"
 ```
 
-The script: creates release branch → bumps plugin.json + README badge → pauses for doc review → commits → creates PR → waits for merge confirmation → tags → creates GitHub release.
-
-**Contributors don't need to bump versions** — maintainers handle this during release.
-
-## Things to Know
-
-- **No build step.** Everything is Markdown. Edit → test → commit.
-- **SKILL.md is the entry point.** Claude Code reads this first. References are loaded on demand.
-- **References are lazy-loaded.** Only loaded when the relevant sub-command is invoked. Keeps context usage low.
-- **claude-plugin/commands/ directory is required.** Without it, sub-commands (`/autoresearch:plan`, etc.) won't register as slash commands.
-- **Plugin system.** Users can install via `/plugin install` — the `.claude-plugin/marketplace.json` at root points to `./claude-plugin` as the distribution source.
-- **The repo is MIT licensed.** Your contributions will be under the same license.
+Contributors don't need to bump versions.
 
 ## Getting Help
 
 - **Questions?** Open an [issue](https://github.com/uditgoenka/autoresearch/issues)
 - **Ideas?** Open an issue with `[Idea]` prefix
-- **Bug reports?** Open an issue with reproduction steps
 - **Discussion?** Tag [@uditgoenka](https://github.com/uditgoenka) in your PR
 
 Thanks for contributing!

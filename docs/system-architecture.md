@@ -2,169 +2,143 @@
 
 ## Overview
 
-Autoresearch now ships as a dual distribution: the original Claude Code plugin and a Codex plugin with a wrapper CLI. The Claude distribution remains markdown-driven. The Codex distribution adds a small Python wrapper plus a canonical JSON command spec that preserves the same command and flag contract.
+Autoresearch v2.1.0 is a modular, markdown-driven autonomous iteration framework. The core architectural shift from v2.0.x is the **thin SKILL.md + self-contained command files** pattern: the skill file is a 41-line routing table; all protocol is embedded in 12 self-contained command files. Only the invoked command file loads per invocation, reducing token cost by ~95%.
+
+Multi-platform: Claude Code, OpenCode, and Codex are all supported via a single `scripts/transform.sh` that produces platform-specific distributions from the canonical `.claude/` source.
 
 ## Component Diagram
 
 ```mermaid
 graph TB
-    subgraph "Claude Runtime"
+    subgraph "Claude Code Runtime"
         CC[Claude Code CLI]
-        PS[Claude Plugin System]
+        PS[Plugin System]
     end
 
-    subgraph "Codex Runtime"
-        CX[Codex CLI]
-        CP[Codex Plugin System]
-        CW[Wrapper CLI]
+    subgraph "Other Platforms"
+        OC[OpenCode]
+        CX[Codex]
     end
 
-    subgraph "Shared Contract"
-        SPEC[autoresearch-command-spec.json]
+    subgraph "Transform Layer"
+        TX[scripts/transform.sh]
     end
 
-    subgraph "Claude Distribution"
-        CMD[Commands Layer]
-        SKILL[Claude SKILL.md]
-        REF[Claude Reference Protocols]
+    subgraph "Canonical Source"
+        SKILL[.claude/skills/autoresearch/SKILL.md\nthin routing table — 41 lines]
+        CMD[.claude/commands/autoresearch.md]
+        CMDS[.claude/commands/autoresearch/*.md\n12 self-contained command files]
+        REF[.claude/skills/autoresearch/references/\n3 focused reference files]
     end
 
-    subgraph "Codex Distribution"
-        CSKILL[Codex SKILL.md]
-        CREF[Codex Compact References]
+    subgraph "Platform Distributions"
+        OCD[.opencode/commands/ + .opencode/skills/]
+        CXD[plugins/autoresearch/ + .agents/skills/]
     end
 
-    subgraph "Commands (9 subcommands + main)"
-        C1[/autoresearch]
-        C2[/autoresearch:plan]
-        C3[/autoresearch:debug]
-        C4[/autoresearch:fix]
-        C5[/autoresearch:security]
-        C6[/autoresearch:ship]
-        C7[/autoresearch:scenario]
-        C8[/autoresearch:predict]
-        C9[/autoresearch:learn]
-        C10[/autoresearch:reason]
-    end
-
-    subgraph "Reference Protocols"
-        R1[autonomous-loop-protocol.md]
-        R2[core-principles.md]
-        R3[results-logging.md]
-        R4[plan-workflow.md]
-        R5[debug-workflow.md]
-        R6[fix-workflow.md]
-        R7[security-workflow.md]
-        R8[ship-workflow.md]
-        R9[scenario-workflow.md]
-        R10[predict-workflow.md]
-        R11[learn-workflow.md]
-        R12[reason-workflow.md]
-    end
-
-    CC --> PS
-    PS --> CMD
-    CMD --> SKILL
-    SKILL --> REF
-    CX --> CP
-    CX --> CW
-    CP --> CSKILL
-    CW --> CSKILL
-    SPEC --> CMD
-    SPEC --> CSKILL
-    CMD --> C1 & C2 & C3 & C4 & C5 & C6 & C7 & C8 & C9 & C10
-    C1 --> R1
-    C2 --> R4
-    C3 --> R5
-    C4 --> R6
-    C5 --> R7
-    C6 --> R8
-    C7 --> R9
-    C8 --> R10
-    C9 --> R11
-    C10 --> R12
+    CC --> PS --> SKILL
+    CC --> CMD & CMDS
+    SKILL -.routing only.-> CMDS
+    CMDS --> REF
+    TX --> OCD
+    TX --> CXD
+    OC --> OCD
+    CX --> CXD
 ```
 
 ## Data Flow — Core Autoresearch Loop
 
 ```mermaid
 flowchart TD
-    A[User invokes autoresearch] --> B{Config complete?}
-    B -- No --> C[Interactive Setup]
-    C --> D[Establish Baseline - Iteration 0]
+    A[User invokes /autoresearch] --> B{Config complete?}
+    B -- No --> C[AskUserQuestion batched setup]
+    C --> D[Establish Baseline — Iteration 0]
     B -- Yes --> D
-    D --> E[Read current state + git history]
-    E --> F[Ideate next change]
+    D --> E[Write TSV header + metric_direction comment]
+    E --> F[Read git log + last TSV rows as memory]
     F --> G[Make ONE focused change]
-    G --> H[Git commit]
-    H --> I[Run Verify command]
+    G --> H[git commit — experiment: description]
+    H --> I[Run Verify command → extract number]
     I --> J{Metric improved?}
     J -- Yes --> K{Guard passes?}
-    K -- Yes --> L[KEEP - Log result]
-    K -- No --> M[Rework up to 2x]
-    M -- Still fails --> N[DISCARD - git revert]
+    K -- Yes --> L[keep — commit stays]
+    K -- No --> M[rework up to 2x]
+    M -- Still fails --> N[discard — git revert]
     J -- No --> N
-    J -- Crashed --> O[Fix up to 3x]
+    I -- Crash --> O[fix up to 3x]
     O -- Fixed --> I
     O -- Unfixable --> N
-    N --> P[Log result]
-    L --> Q{More iterations?}
-    P --> Q
-    Q -- Yes --> E
-    Q -- No --> R[Print final summary]
-```
-
-## Learn Subcommand Flow
-
-Supports 4 modes: `init` (from scratch), `update` (diff-based targeting), `check` (read-only health), `summarize` (quick inventory). Update mode uses git-diff scoping to identify changed files and maps them to affected docs for targeted regeneration.
-
-```mermaid
-flowchart LR
-    S1[Phase 1: Scout] --> S2[Phase 2: Analyze]
-    S2 --> S3[Phase 3: Map]
-    S3 --> S4[Phase 4: Generate]
-    S4 --> S5[Phase 5: Validate]
-    S5 --> S6{Pass?}
-    S6 -- No --> S7[Phase 6: Fix Loop max 3x]
-    S7 --> S5
-    S6 -- Yes --> S8[Phase 7: Finalize]
-    S8 --> S9[Phase 8: Log]
+    N --> P[Log row to TSV]
+    L --> P
+    P --> Q{Eval checkpoint?}
+    Q -- Yes --> R[Print 5-line checkpoint]
+    Q -- No --> S{More iterations?}
+    R --> S
+    S -- Yes --> F
+    S -- No --> T[Print summary + write handoff.json]
+    T --> U{--chain?}
+    U -- Yes --> V[Invoke next command]
+    U -- No --> W[Done]
 ```
 
 ## Directory Structure
 
 ```
-claude-plugin/
-├── .claude-plugin/
-│   └── plugin.json              # Plugin metadata (name, version, author)
+.claude/
 ├── commands/
-│   ├── autoresearch.md          # Main command registration
+│   ├── autoresearch.md                    # Core loop command — self-contained, 110 lines
 │   └── autoresearch/
-│       └── {subcommand}.md      # One file per subcommand (9 files: debug, fix, learn, plan, predict, reason, scenario, security, ship)
-└── skills/
-    └── autoresearch/
-        ├── SKILL.md             # Main skill definition v1.8.0 (loaded by Claude Code)
-        └── references/
-            └── {workflow}.md    # Detailed protocol per command and shared protocol
+│       ├── debug.md                       # Hypothesis iteration loop
+│       ├── evals.md                       # One-shot TSV analysis (NEW in v2.1.0)
+│       ├── fix.md                         # Error-count reduction loop
+│       ├── learn.md                       # Doc generation loop
+│       ├── plan.md                        # Goal-to-config wizard
+│       ├── predict.md                     # 5-persona one-shot debate
+│       ├── probe.md                       # Requirement interrogation loop
+│       ├── reason.md                      # Adversarial refinement loop
+│       ├── scenario.md                    # 12-dimension edge case loop
+│       ├── security.md                    # STRIDE + OWASP loop
+│       └── ship.md                        # 8-phase ship pipeline
+└── skills/autoresearch/
+    ├── SKILL.md                           # Routing table only — 41 lines
+    └── references/
+        ├── predict-personas.md            # 5 default expert personas
+        ├── reason-judge-protocol.md       # Blind judge scoring protocol
+        └── security-checklist.md          # STRIDE + OWASP checklist
+
+.opencode/                                 # OpenCode distribution (underscore naming)
+plugins/autoresearch/                      # Codex distribution
+.agents/skills/autoresearch/              # Codex agents distribution
+scripts/
+├── transform.sh                          # Single multi-platform transform script
+└── install.sh                            # Guided installer
+
+claude-plugin/
+└── .claude-plugin/plugin.json            # Claude Code metadata — v2.1.0
+plugins/autoresearch/
+└── .codex-plugin/plugin.json             # Codex metadata — v2.1.0-codex.0
 ```
 
 ## Key Architectural Decisions
 
-1. **Markdown-only architecture** -- no compiled code, no runtime dependencies. The plugin is pure markdown consumed by Claude Code's skill system.
-2. **Shared command spec** -- `plugins/autoresearch/resources/autoresearch-command-spec.json` is the canonical command, flag, output, and stop-condition contract.
-3. **Reference file pattern** -- both skills act as routers and load workflow guidance from `references/`.
-4. **Git as state management** -- no database or external state. Git commits serve as experiment log, rollback mechanism, and learning memory.
-5. **Mechanical verification only** -- all decisions are based on command output (exit codes, parsed numbers), never subjective assessment.
-6. **Translated setup gate** -- Claude uses `AskUserQuestion`; Codex uses `request_user_input` or concise direct question batches.
-7. **Diff-based targeting (update mode)** -- learn subcommand uses `git diff` to scope changes and maps them to affected docs, avoiding unnecessary full regeneration.
+| Decision | Rationale |
+|----------|-----------|
+| Thin SKILL.md routing table (41 lines) | ~95% token reduction vs monolith v2.0.x SKILL.md (813 lines) |
+| Self-contained command files | Each file embeds full protocol — no reference file loading unless needed |
+| 3 focused reference files (not 13) | Only truly shared content warrants a reference: personas, judge protocol, security checklist |
+| No autoresearch-command-spec.json | JSON spec removed; command contracts live in individual command files |
+| scripts/transform.sh replaces sync-opencode.sh + sync-codex.sh | Single script generates all platform distributions |
+| TSV with `# metric_direction` comment | Enables evals command to auto-detect direction without user prompt |
+| 8 TSV status values | baseline, keep, discard, crash, no-op, hook-blocked, metric-error, keep (reworked) |
+| handoff.json for chain integration | Structured handoff between subcommands; evals reads `*-results.tsv` directly |
 
 ## Integration Points
 
-- **Claude Code Plugin System** -- commands registered via `commands/` directory, skill loaded via `skills/` directory
-- **Codex Plugin System** -- skill loaded via `plugins/autoresearch/skills/`, wrapper launched via `plugins/autoresearch/scripts/autoresearch_cli.py`
-- **Git** -- used for memory, rollback, staleness detection, changelog generation
-- **Shell commands** -- verify/guard commands are user-defined shell commands
-- **MCP servers** -- any MCP server configured in Claude Code is available during loops
-- **Chain integration** -- subcommands can pipe output to each other via `--chain` flag and `handoff.json`
+- **Claude Code Plugin System** — commands in `.claude/commands/`, skill in `.claude/skills/`
+- **OpenCode** — `.opencode/commands/` + `.opencode/skills/` (underscore naming convention)
+- **Codex** — `plugins/autoresearch/` + `.agents/skills/autoresearch/`
+- **Git** — memory, rollback, staleness detection, changelog generation
+- **Shell** — verify and guard commands are user-defined shell expressions
+- **MCP servers** — any MCP server configured in the host environment is available during loops
 
 See also: [Project Overview](project-overview-pdr.md) | [Codebase Summary](codebase-summary.md) | [Code Standards](code-standards.md)

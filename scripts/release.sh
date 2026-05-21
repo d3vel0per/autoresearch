@@ -7,9 +7,9 @@
 # Example: ./scripts/release.sh 1.7.0 --title "New Feature X"
 #
 # Versioning:
-#   v1.6.X  — patch: bugfixes, small updates
-#   v1.X.0  — minor: new features, significant changes
-#   v2.0.0+ — major: reserved for future
+#   v2.1.X  — patch: bugfixes, small updates
+#   v2.X.0  — minor: new features, significant changes
+#   vX.0.0  — major: breaking changes, full rewrites
 
 set -euo pipefail
 
@@ -27,10 +27,10 @@ if [[ -z "$VERSION" ]]; then
   echo "Usage: ./scripts/release.sh <version> [--title \"Release title\"]"
   echo ""
   echo "Versioning guide:"
-  echo "  v1.6.X  — patch: bugfixes, small updates"
-  echo "  v1.X.0  — minor: new features, significant changes"
+  echo "  v2.1.X  — patch: bugfixes, small updates"
+  echo "  v2.X.0  — minor: new features, significant changes"
   echo ""
-  echo "Example: ./scripts/release.sh 1.7.0 --title \"Scenario Explorer\""
+  echo "Example: ./scripts/release.sh 2.2.0 --title \"New Feature\""
   exit 1
 fi
 

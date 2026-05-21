@@ -1,8 +1,8 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "autoresearch",
-  "version": "2.0.03",
-  "description": "Claude Autoresearch \u2014 autonomous goal-directed iteration for Claude Code. Inspired by Karpathy's autoresearch: constraint + mechanical metric + autonomous iteration = compounding gains.",
+  "version": "2.1.0",
+  "description": "Claude Autoresearch \u2014 autonomous goal-directed iteration for Claude Code. 12 commands: iterate, plan, debug, fix, security, ship, scenario, predict, learn, reason, probe, evals.",
   "owner": {
     "name": "Udit Goenka",
     "url": "https://github.com/uditgoenka"
@@ -10,8 +10,8 @@
   "plugins": [
     {
       "name": "autoresearch",
-      "description": "Autonomous improvement engine: /autoresearch runs an unlimited modify-verify-keep/discard loop. 11 subcommands: plan, debug, fix, security, ship, scenario, predict, learn, reason, and probe.",
-      "version": "2.0.03",
+      "description": "Autonomous improvement engine. 12 commands with bounded defaults, chain handoff, and adaptive evals checkpoints. 95% token reduction via modular architecture.",
+      "version": "2.1.0",
       "author": {
         "name": "Udit Goenka",
         "url": "https://github.com/uditgoenka"

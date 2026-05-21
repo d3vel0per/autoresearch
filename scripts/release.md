@@ -4,18 +4,18 @@
 
 | Type | Pattern | When to use | Example |
 |------|---------|-------------|---------|
-| **Patch** | `v1.6.X` | Bugfixes, typos, small updates, dependency bumps | `v1.6.2` |
-| **Minor** | `v1.X.0` | New features, new commands, significant changes | `v1.7.0` |
-| **Major** | `vX.0.0` | Reserved for v2+ (breaking changes, full rewrites) | `v2.0.0` |
+| **Patch** | `v2.1.X` | Bugfixes, typos, small updates, dependency bumps | `v2.1.1` |
+| **Minor** | `v2.X.0` | New features, new commands, significant changes | `v2.2.0` |
+| **Major** | `vX.0.0` | Breaking changes, full rewrites | `v3.0.0` |
 
 ## Quick Reference
 
 ```bash
 # Patch release (bugfix)
-./scripts/release.sh 1.6.2 --title "Fix scenario timeout handling"
+./scripts/release.sh 2.1.1 --title "Fix scenario timeout handling"
 
 # Minor release (new feature)
-./scripts/release.sh 1.7.0 --title "New Feature Name"
+./scripts/release.sh 2.2.0 --title "New Feature Name"
 ```
 
 ## What the Script Does

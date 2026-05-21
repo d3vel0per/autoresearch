@@ -2,86 +2,102 @@
 
 ## Language and Format
 
-This project is entirely **markdown-based** with shell script helpers. There is no compiled code. Standards focus on markdown authoring, skill definition patterns, and shell scripting conventions.
+This project is entirely **markdown-based** with shell script helpers. There is no compiled code. Standards cover markdown authoring, skill definition patterns, and shell scripting conventions.
 
 ## File Naming
 
-- **kebab-case** for all file names: `security-workflow.md`, `score-debug-fix.sh`
-- Names should be descriptive enough that an LLM can understand file purpose without reading content
-- Command registration files match their command name: `debug.md` for `/autoresearch:debug`
+- **kebab-case** for all file names: `security-checklist.md`, `transform.sh`
+- Names should be descriptive enough that an LLM understands purpose without reading content
+- Command files match their command name: `debug.md` for `/autoresearch:debug`
+- OpenCode distribution uses underscores: `autoresearch_debug.md`
 
-## Markdown Conventions
+## SKILL.md Pattern (v2.1.0)
 
-### SKILL.md Pattern
+The main skill file is a **thin routing table only** — not a protocol document:
+- YAML frontmatter: `name`, `description`, `version`
+- Safety invariants section (applies to all subcommands)
+- Subcommand table: command, purpose, default iterations
+- Universal flags table
+- No workflow protocol, no setup gate questions, no phase diagrams
 
-The main skill file (`SKILL.md`) follows Claude Code's skill definition format:
-- YAML frontmatter with `name`, `description`, `version`
-- Mandatory setup gate section (interactive setup with AskUserQuestion)
-- Subcommand table with purpose descriptions
-- Activation triggers section
-- Each subcommand documented with usage examples, flags, and composite metric
+Target: ~41 lines. All protocol lives in the command files.
 
-### Reference Files
+## Command File Pattern (v2.1.0)
 
-Workflow reference files (`references/*.md`) follow a consistent structure:
-- Trigger section -- when to activate
-- Loop support -- example invocations
-- Interactive setup -- AskUserQuestion batched questions
-- Architecture -- phase diagram
-- Phase-by-phase protocol -- detailed numbered steps
-- Flags table -- all supported flags with defaults
-- Composite metric formula
-- Anti-patterns table -- what NOT to do
-- Output directory structure
-
-### Command Registration Files
-
-Command files (`commands/autoresearch/*.md`) are minimal:
+Each command file (`.claude/commands/autoresearch/*.md`) is **self-contained**:
 - YAML frontmatter: `name`, `description`, `argument-hint`
-- Execution instructions: read workflow reference, ask questions if needed, execute
+- `EXECUTE IMMEDIATELY` header — no deliberation before reading
+- Parse Arguments section — extract all flags inline
+- Setup section — AskUserQuestion batched call if config missing
+- Precondition checks
+- Full loop or workflow protocol with numbered phases
+- TSV logging format
+- Chain handoff section
 
-## Shell Script Standards
+Target: 94–120 lines per command file. Never split protocol across files unless content is truly shared across 3+ commands.
 
-- Use `#!/bin/bash` or `#!/usr/bin/env bash`
-- Quote variables: `"$VAR"` not `$VAR`
-- Use `set -euo pipefail` for strict error handling where appropriate
-- Scripts live in `scripts/` directory
+## Reference Files Pattern (v2.1.0)
 
-## Documentation Standards
+Reference files (`.claude/skills/autoresearch/references/`) are for **shared content only**:
+- Loaded explicitly by the command file that needs them
+- Must be referenced by 3+ commands to justify existence as a reference
+- Current 3 references: `predict-personas.md`, `reason-judge-protocol.md`, `security-checklist.md`
 
-- Each doc file max **800 lines** (README max 300 lines)
-- Include "See also" cross-reference links between related docs
-- Use tables for structured comparisons
-- Use Mermaid diagrams for architecture and flow visualization
-- Keep content factual and specific to the codebase -- no generic boilerplate
+Do not create per-command workflow reference files. That was the v2.0.x pattern (13 files). v2.1.0 embeds protocol directly.
 
-## Commit Message Format
+## TSV Logging Format
 
-- Conventional commits: `feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`, `style:`, `release:`
-- No AI references in commit messages
-- Keep commits focused on actual changes
+All looping commands write results in TSV format:
+
+```
+# metric_direction: higher_is_better|lower_is_better
+iteration	timestamp	commit	metric	delta	guard	guard-metric	status	description
+0	{ts}	{sha}	{n}	0.0	-	-	baseline	initial state
+```
+
+Status values (8 total): `baseline`, `keep`, `keep (reworked)`, `discard`, `crash`, `no-op`, `hook-blocked`, `metric-error`
+
+The `# metric_direction` comment on line 1 enables the evals command to auto-detect direction. Never omit it.
 
 ## Version Management
 
-- Version tracked in `claude-plugin/.claude-plugin/plugin.json`
+- Version tracked in **two** plugin.json files:
+  - `claude-plugin/.claude-plugin/plugin.json` — Claude Code (e.g. `2.1.0`)
+  - `plugins/autoresearch/.codex-plugin/plugin.json` — Codex (e.g. `2.1.0-codex.0`)
 - Version also appears in SKILL.md frontmatter and README badges
-- Release script (`scripts/release.sh`) automates version bumping
+- `scripts/release.sh` automates version bumping across all touchpoints
 
-## Results Logging
+## Shell Script Standards
 
-- All iteration results logged in TSV format
-- Fields: `iteration`, `commit`, `metric`, `delta`, `status`, `description`
-- Status values: `baseline`, `keep`, `discard`, `crash`
-- Progress summaries printed every 10 iterations (or every 5 for learn workflow)
-- Learn workflow composite metric: `learn_score = validation%*0.5 + coverage%*0.3 + size_compliance%*0.2`
+- Shebang: `#!/usr/bin/env bash`
+- Quote all variables: `"$VAR"` not `$VAR`
+- `set -euo pipefail` for strict error handling
+- Scripts live in `scripts/` — no scripts in plugin directories
+- `scripts/transform.sh` is the single source for all platform distributions; do not maintain separate sync scripts
 
-## Learn Workflow Standards
+## Platform Distribution
 
-- 4 modes: `init`, `update`, `check`, `summarize` -- mode auto-detected from docs/ state
-- Update mode uses diff-based targeting: `git diff --name-only` maps changed files to affected docs
-- Validation-fix loop capped at 3 retries before escalation
-- Doc size compliance: max 800 lines per doc, README max 300 lines
-- Dynamic doc discovery via `ls docs/*.md` -- no hardcoded file lists
-- Scout phase is scale-aware: adjusts parallelism for 5k+ file codebases
+Source of truth is `.claude/`. To update OpenCode or Codex distributions:
+1. Edit canonical files in `.claude/commands/` or `.claude/skills/`
+2. Run `scripts/transform.sh` to regenerate platform distributions
+3. Commit all generated files together
+
+Do not hand-edit `.opencode/` or `plugins/autoresearch/` files directly.
+
+## Documentation Standards
+
+- Each doc file max **200 lines**
+- README max 300 lines
+- Include "See also" cross-reference links at the bottom of each file
+- Use tables for structured comparisons
+- Use Mermaid diagrams for architecture and flow visualization
+- Keep content factual and specific to the codebase
+
+## Commit Message Format
+
+- Conventional commits: `feat:`, `fix:`, `docs:`, `refactor:`, `chore:`, `release:`
+- No AI references in commit messages
+- Keep commits focused on actual changes
+- Experiment commits from loops use `experiment: {description}` prefix
 
 See also: [Project Overview](project-overview-pdr.md) | [System Architecture](system-architecture.md) | [Codebase Summary](codebase-summary.md)

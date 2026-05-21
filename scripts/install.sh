@@ -203,8 +203,6 @@ install_codex() {
   local t="$1"
   mkdir -p "$t/skills"
   sync_dir "$REPO_ROOT/.agents/skills/autoresearch" "$t/skills/autoresearch"
-  sync_file "$REPO_ROOT/plugins/autoresearch/resources/autoresearch-command-spec.json" "$t/skills/autoresearch/resources/autoresearch-command-spec.json"
-  sync_file "$REPO_ROOT/plugins/autoresearch/scripts/autoresearch_cli.py" "$t/skills/autoresearch/scripts/autoresearch_cli.py"
 }
 
 main() {

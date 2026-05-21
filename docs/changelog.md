@@ -2,89 +2,108 @@
 
 Generated from git history. Grouped by type using conventional commit parsing.
 
+## v2.1.0
+
+### Features
+- `feat:` modular rebuild — thin SKILL.md routing table (41 lines) + 12 self-contained command files
+- `feat:` add `/autoresearch:evals` subcommand — one-shot TSV trend and plateau analysis
+- `feat:` `--evals` and `--evals-interval` flags on all looping commands
+- `feat:` TSV `# metric_direction` comment for auto-detection by evals
+- `feat:` 8 TSV status values — added `keep (reworked)`, `hook-blocked`, `metric-error`
+- `feat:` `scripts/transform.sh` single multi-platform transform script
+
+### Removed
+- `chore:` remove `autoresearch-command-spec.json` — contracts live in command files
+- `chore:` remove `scripts/sync-opencode.sh` and `scripts/sync-codex.sh` — replaced by transform.sh
+- `chore:` remove Python wrapper CLI (`autoresearch_cli.py`)
+- `chore:` collapse 13 reference files down to 3 focused references
+
+### Release
+- `release:` v2.1.0 — modular rebuild, evals, 95% token reduction
+
+## v2.0.04
+
+### Fixed
+- `fix:` YAML colon escape issues in SKILL.md frontmatter across platforms
+- `fix:` sync script path handling for edge cases with special characters
+
+### Release
+- `release:` v2.0.04 — YAML and sync script stability
+
+## v2.0.0
+
+### Features
+- `feat:` multi-platform GA — Claude Code, OpenCode, Codex all fully supported
+- `feat:` `allowed-tools` declaration on all Claude Code and claude-plugin command files
+
+### Fixed
+- `fix:` SKILL.md YAML frontmatter uses folded block scalars — strict parsers no longer reject description field
+- `fix:` sync scripts pass paths via argv instead of shell string interpolation
+- `fix:` install.sh validates destination path depth before rm -rf
+
+### Release
+- `release:` v2.0.0 — multi-platform GA
+
+## v1.10.0
+
+### Features
+- `feat:` add `/autoresearch:probe` — adversarial multi-persona requirement interrogation engine
+- `feat:` 8 personas, mechanical saturation termination, constraint extraction
+
+### Release
+- `release:` v1.10.0 — probe subcommand
+
 ## v1.8.0
 
 ### Features
-- `feat:` /autoresearch:learn improvements and stability fixes
-- `feat:` add /autoresearch:learn — autonomous codebase documentation engine
-
-### Documentation
-- `docs:` update COMPARISON.md, plugin descriptions, scenario guide for learn subcommand
+- `feat:` add `/autoresearch:learn` — autonomous codebase documentation engine
+- `feat:` 4 modes: init, update, check, summarize; diff-based targeting for update mode
 
 ### Release
-- `release:` v1.8.0 — /autoresearch:learn autonomous documentation engine
+- `release:` v1.8.0 — learn subcommand
 
 ## v1.7.6
 
 ### Documentation
-- `docs:` add Karpathy vs Claude Autoresearch comparison document
+- `docs:` add COMPARISON.md — Karpathy vs Claude Autoresearch
 - `docs:` add 10 scenario-based guide examples in guide/scenario/
 
-### Style
-- `style:` separate badges into two rows for cleaner layout
-
 ### Release
-- `release:` v1.7.6 — scenario guides, comparison doc, version bump
+- `release:` v1.7.6 — scenario guides, comparison doc
 
 ## v1.7.0 — v1.7.5
 
 ### Features
-- `feat:` add /autoresearch:predict multi-persona swarm prediction (v1.7.0)
+- `feat:` add `/autoresearch:predict` — multi-persona swarm prediction (v1.7.0)
 
-### Fixes
-- `fix:` resolve ENAMETOOLONG recursive plugin caching (closes #43)
+### Fixed
+- `fix:` resolve ENAMETOOLONG recursive plugin caching
 - `fix:` address 8 stability bugs from debug audit
-- `fix:` add explicit argument parsing and iteration tracking to all commands
 - `fix:` streamline command files for faster trigger and live streaming
 
-### Documentation
-- `docs:` add ML metrics, git memory automation, atomicity enforcement, DevOps CLI
-- `docs:` add actionable implementation guidance for Context7 benchmark
-- `docs:` add PayPal support badge to README
-- `docs:` update star history chart legend position to bottom-right
-- `docs:` add update instructions to Quick Start section
-- `docs:` restructure guides into individual command files
-
-### Chores
-- `chore:` prepare release v1.7.3, v1.7.2, v1.7.1
-- `chore:` sync root distribution files with .claude/ and add release sync step
-- `chore:` bump version to 1.7.0 for multi-persona swarm prediction release
+### Release
+- `release:` v1.7.0 — predict subcommand
 
 ## v1.6.0 — v1.6.2
 
 ### Features
-- `feat:` add /autoresearch:scenario subcommand (v1.6.0)
+- `feat:` add `/autoresearch:scenario` subcommand
 - `feat:` release workflow with PR-first flow and doc review gate
 
-### Fixes
-- `fix:` harden git-as-memory mechanism in autonomous loop (v1.6.1)
-- `fix:` bump plugin.json version from 1.3.0 to 1.6.1
-- `fix:` add source path to marketplace.json plugin entry
-- `fix:` bump marketplace.json to 1.6.2 and add to release workflow
-- `fix:` remove self-referencing source URL from marketplace.json
+### Fixed
+- `fix:` harden git-as-memory mechanism in autonomous loop
 
-### Documentation
-- `docs:` expand EXAMPLES.md with new domains, languages, and chains
-- `docs:` update CONTRIBUTING.md to reflect current project state
-- `docs:` add comprehensive GUIDE.md and bump to v1.6.2
-
-### Chores
-- `chore:` add context7.json for Context7 integration
-- `chore:` add GUIDE.md and CONTRIBUTING.md to release workflow
-- `chore:` add release script to auto-bump plugin.json version
-- `chore:` update star history chart to timeline view
+### Release
+- `release:` v1.6.x — scenario subcommand
 
 ## v1.3.0 — v1.5.0
 
 ### Features
-- `feat:` enforce mandatory AskUserQuestion gate for all commands (v1.5.0)
-- `feat:` batched AskUserQuestion setup for all commands (v1.3.2)
-- `feat:` batch AskUserQuestion calls for all commands — ask 3-4 questions at once
-- `feat:` interactive AskUserQuestion setup for all commands (v1.3.1)
-- `feat:` add interactive AskUserQuestion setup to security and ship workflows
+- `feat:` enforce mandatory AskUserQuestion gate for all commands
+- `feat:` batched AskUserQuestion setup — ask 3-4 questions at once
+- `feat:` add `/autoresearch:reason` adversarial refinement loop
 
-### Fixes
-- `fix:` replace /loop N with native Iterations: N config (v1.4.0)
-- `fix:` register base /autoresearch command (v1.3.3)
+### Fixed
+- `fix:` replace /loop N with native Iterations: N config
 
 See also: [Development Roadmap](development-roadmap.md) | [Project Overview](project-overview-pdr.md)

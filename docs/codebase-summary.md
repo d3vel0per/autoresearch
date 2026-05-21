@@ -2,81 +2,89 @@
 
 ## Overview
 
-The autoresearch codebase now ships two distributions: the original Claude Code plugin and a Codex plugin. The Claude side remains markdown-driven. The Codex side adds a small Python wrapper CLI plus a canonical JSON spec for the shared command contract.
+Autoresearch v2.1.0 ships as a modular, multi-platform autonomous iteration framework. The canonical source lives in `.claude/`; `scripts/transform.sh` produces OpenCode and Codex distributions. There is no compiled code and near-zero runtime dependencies.
 
 ## File Inventory
 
-| Directory | Purpose | File Count | Primary Types |
-|-----------|---------|------------|---------------|
-| `claude-plugin/commands/` | Slash command registrations (main + 8 subcommands) | 10 | `.md` |
-| `claude-plugin/skills/autoresearch/` | Skill definition + protocols | 13 | `.md` |
-| `plugins/autoresearch/` | Codex plugin, skill router, spec, and wrapper CLI | 14 | `.json`, `.md`, `.py` |
-| `guide/` | User-facing documentation and tutorials | 14 | `.md` |
-| `guide/scenario/` | Real-world scenario walkthroughs (10 domains) | 11 | `.md` |
-| `docs/` | Project documentation | 7 | `.md` |
-| `scripts/` | Release and utility scripts | 3 | `.sh`, `.md` |
-| Root | README, LICENSE, COMPARISON, CONTRIBUTING | 4 | `.md` |
+| Directory | Purpose | Primary Types |
+|-----------|---------|---------------|
+| `.claude/commands/` | Core loop + 11 subcommand files (self-contained) | `.md` |
+| `.claude/skills/autoresearch/` | Thin routing SKILL.md + 3 reference files | `.md` |
+| `.opencode/commands/` | OpenCode distribution (underscore naming) | `.md` |
+| `.opencode/skills/autoresearch/` | OpenCode skill + reference copies | `.md` |
+| `plugins/autoresearch/` | Codex plugin: skill, references, command files, plugin.json | `.md`, `.json` |
+| `.agents/skills/autoresearch/` | Codex agents: skill, references, commands | `.md` |
+| `guide/` | User-facing documentation and tutorials | `.md` |
+| `guide/scenario/` | Real-world scenario walkthroughs (10 domains) | `.md` |
+| `docs/` | Project documentation | `.md` |
+| `scripts/` | Platform transform and installer | `.sh`, `.md` |
+| Root | README, LICENSE, COMPARISON, CONTRIBUTING | `.md` |
 
 ## Key Files
 
 | File | Purpose |
 |------|---------|
-| `claude-plugin/skills/autoresearch/SKILL.md` | Main entry point -- loaded by Claude Code, defines all 9 subcommands, setup gates, and activation triggers |
-| `plugins/autoresearch/skills/autoresearch/SKILL.md` | Main entry point -- loaded by Codex, routes the Codex-native plain-text command surface |
-| `plugins/autoresearch/resources/autoresearch-command-spec.json` | Canonical command and flag contract shared by the Codex skill and wrapper |
-| `plugins/autoresearch/scripts/autoresearch_cli.py` | Wrapper CLI that converts autoresearch commands into `codex exec` prompts |
-| `claude-plugin/.claude-plugin/plugin.json` | Plugin metadata: name, version 1.8.0, author, keywords |
-| `claude-plugin/commands/autoresearch.md` | Main `/autoresearch` command registration |
-| `claude-plugin/commands/autoresearch/*.md` | Subcommand registrations (plan, debug, fix, security, ship, scenario, predict, learn) |
-| `claude-plugin/skills/autoresearch/references/autonomous-loop-protocol.md` | Core 8-phase loop protocol |
-| `claude-plugin/skills/autoresearch/references/core-principles.md` | 7 universal principles from Karpathy's approach |
-| `claude-plugin/skills/autoresearch/references/learn-workflow.md` | 8-phase learn documentation engine protocol (480 lines) |
-| `scripts/release.sh` | Release automation script |
+| `.claude/skills/autoresearch/SKILL.md` | Thin routing table (41 lines) — loaded by Claude Code per invocation |
+| `.claude/commands/autoresearch.md` | Core loop command — self-contained protocol, ~110 lines |
+| `.claude/commands/autoresearch/evals.md` | NEW: one-shot TSV analysis — trends, plateaus, regressions |
+| `.claude/skills/autoresearch/references/predict-personas.md` | 5 default expert personas used by predict subcommand |
+| `.claude/skills/autoresearch/references/reason-judge-protocol.md` | Blind judge scoring protocol for reason subcommand |
+| `.claude/skills/autoresearch/references/security-checklist.md` | STRIDE + OWASP checklist used by security subcommand |
+| `claude-plugin/.claude-plugin/plugin.json` | Claude Code plugin metadata — version 2.1.0 |
+| `plugins/autoresearch/.codex-plugin/plugin.json` | Codex plugin metadata — version 2.1.0-codex.0 |
+| `scripts/transform.sh` | Single script that generates all platform distributions from `.claude/` source |
+| `scripts/install.sh` | Guided interactive installer |
 | `README.md` | Project README with installation, usage, FAQ |
-| `COMPARISON.md` | Comparison: Karpathy's autoresearch vs Claude Autoresearch |
+| `COMPARISON.md` | Karpathy's autoresearch vs Claude Autoresearch |
 | `CONTRIBUTING.md` | Contribution guidelines |
-
-## Key Dependencies
-
-This project has **near-zero runtime dependencies**. The Claude distribution is pure markdown. The Codex distribution adds Python 3 for the wrapper CLI and JSON for the canonical command spec.
-
-| Dependency | Type | Purpose |
-|------------|------|---------|
-| Claude Code CLI | Runtime (host) | Provides the plugin system, skill loading, and command registration |
-| Codex CLI | Runtime (host) | Provides the Codex skill runtime and non-interactive `codex exec` path |
-| Python 3 | Runtime (system) | Runs the Codex wrapper CLI |
-| Git | Runtime (system) | State management, rollback, memory, changelog generation |
-| Bash/Zsh | Runtime (system) | Shell scripts for release automation |
-| GitHub CLI (`gh`) | Optional | Used by ship workflow for PR creation and release management |
-| Node.js | Optional | Used by `validate-docs.cjs` script for documentation validation |
-
-**No `package.json`, `requirements.txt`, `Cargo.toml`, or other dependency manifest exists.** The project stays dependency-light and uses only built-in markdown, JSON, shell, and Python runtime features.
 
 ## Subcommand Registry
 
-| Command | Workflow Reference | Purpose |
-|---------|-------------------|---------|
-| `/autoresearch` | `autonomous-loop-protocol.md` | Core autonomous iteration loop |
-| `/autoresearch:plan` | `plan-workflow.md` | Goal-to-config wizard |
-| `/autoresearch:debug` | `debug-workflow.md` | Scientific method bug hunting |
-| `/autoresearch:fix` | `fix-workflow.md` | Iterative error repair |
-| `/autoresearch:security` | `security-workflow.md` | STRIDE + OWASP security audit |
-| `/autoresearch:ship` | `ship-workflow.md` | Universal shipping workflow |
-| `/autoresearch:scenario` | `scenario-workflow.md` | Scenario-driven use case generation |
-| `/autoresearch:predict` | `predict-workflow.md` | Multi-persona swarm prediction |
-| `/autoresearch:learn` | `learn-workflow.md` | Autonomous documentation engine |
-| `/autoresearch:reason` | `reason-workflow.md` | Adversarial refinement loop |
+| Command | Loop Shape | Default Iterations |
+|---------|-----------|-------------------|
+| `/autoresearch` | commit → verify → keep/discard | 25 |
+| `/autoresearch:plan` | one-shot wizard | N/A |
+| `/autoresearch:debug` | hypothesis iteration | 15 |
+| `/autoresearch:fix` | commit → verify → revert (error count) | 20 |
+| `/autoresearch:security` | attack vector iteration | 15 |
+| `/autoresearch:ship` | linear 8-phase pipeline | N/A |
+| `/autoresearch:scenario` | 12-dimension exploration | 20 |
+| `/autoresearch:predict` | one-shot 5-persona debate | N/A |
+| `/autoresearch:learn` | doc → validate → fix loop | 10 |
+| `/autoresearch:reason` | adversarial refinement | 8 |
+| `/autoresearch:probe` | round-based interrogation | 15 |
+| `/autoresearch:evals` | one-shot TSV analysis | N/A |
+
+## Key Dependencies
+
+| Dependency | Type | Purpose |
+|------------|------|---------|
+| Claude Code CLI | Runtime (host) | Plugin system, skill loading, command registration |
+| OpenCode CLI | Runtime (host) | OpenCode skill and command runtime |
+| Codex CLI | Runtime (host) | Codex skill runtime |
+| Git | Runtime (system) | State management, rollback, memory, staleness detection |
+| Bash/Zsh | Runtime (system) | Shell scripts, verify/guard commands |
+| GitHub CLI (`gh`) | Optional | PR creation and release management in ship workflow |
+
+No `package.json`, `requirements.txt`, `Cargo.toml`, or Python wrapper CLI. The v2.0.x Python wrapper (`autoresearch_cli.py`) was removed in v2.1.0.
 
 ## Output Directories
 
-Each subcommand creates timestamped output directories:
+All subcommands write to `autoresearch/{subcommand}-{YYMMDD}-{HHMM}/`:
 
-- `security/{YYMMDD}-{HHMM}-{slug}/` -- security audit reports
-- `ship/{YYMMDD}-{HHMM}-{slug}/` -- shipping logs and checklists
-- `scenario/{YYMMDD}-{HHMM}-{slug}/` -- scenario exploration results
-- `predict/{YYMMDD}-{HHMM}-{slug}/` -- prediction analysis and debates
-- `learn/{YYMMDD}-{HHMM}-{slug}/` -- documentation generation logs (`learn-results.tsv`, `summary.md`, `validation-report.md`, `scout-context.md`)
+| Output File | Written By |
+|-------------|-----------|
+| `*-results.tsv` | All looping subcommands |
+| `handoff.json` | All subcommands (chain integration) |
+| `evals-summary.md` | evals command, or any command with `--evals` flag |
+| `evals-summary.json` | evals command with `--format json` |
+| `security-report.md` | security subcommand |
+| `ship-log.md` | ship subcommand |
+| `scenario-results.md` | scenario subcommand |
+| `predict-report.md` | predict subcommand |
+| `learn/` subdirectory | learn subcommand: `learn-results.tsv`, `summary.md`, `validation-report.md` |
+| `probe-spec.md`, `constraints.tsv` | probe subcommand |
 
-All output uses TSV format for iteration tracking (`*-results.tsv`) and markdown for reports.
+TSV files include a `# metric_direction: higher_is_better|lower_is_better` comment on line 1. Status values: `baseline`, `keep`, `keep (reworked)`, `discard`, `crash`, `no-op`, `hook-blocked`, `metric-error`.
 
 See also: [Project Overview](project-overview-pdr.md) | [System Architecture](system-architecture.md) | [Code Standards](code-standards.md)

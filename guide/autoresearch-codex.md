@@ -1,96 +1,158 @@
-# Autoresearch For Codex
+# Autoresearch for Codex — v2.1.0
 
-Autoresearch now includes a Codex-native distribution in [`plugins/autoresearch`](../plugins/autoresearch). The goal is command-surface parity with the Claude version: same subcommands, same flags, same inline config fields, same chained workflows, and the same output directory contracts.
+Codex distribution of autoresearch. Same 12 commands, same flags, same output contracts as the Claude Code version. Entry point: `$autoresearch <command>`.
 
-## What Ships
-
-- `plugins/autoresearch/.codex-plugin/plugin.json`
-- `plugins/autoresearch/skills/autoresearch/SKILL.md`
-- `plugins/autoresearch/resources/autoresearch-command-spec.json`
-- `plugins/autoresearch/scripts/autoresearch_cli.py`
-- `plugins/autoresearch/scripts/install_local_plugin.py`
-- `bin/autoresearch`
-
-## Invocation Forms
-
-Codex supports two entry paths:
-
-### 1. Native skill prompt
-
-Write the command in plain text:
-
-```text
-autoresearch:security --diff --fail-on critical
-
-Scope: src/api/**/*.ts
-Focus: authentication and authorization
-Iterations: 10
-```
-
-The Codex skill treats that first line as the canonical command invocation and preserves the rest as inline config and context.
-
-### 2. Wrapper CLI
-
-```bash
-bin/autoresearch security --diff --fail-on critical <<'EOF'
-Scope: src/api/**/*.ts
-Focus: authentication and authorization
-Iterations: 10
-EOF
-```
-
-By default the wrapper runs `codex exec`. Use `--no-exec` to print the generated prompt without launching Codex.
+---
 
 ## Install
 
 ```bash
-./scripts/install.sh --codex --global
+npx skills add uditgoenka/autoresearch
 ```
 
-That installs the Codex skill to `${CODEX_HOME:-~/.codex}/skills/autoresearch`, including the wrapper CLI and command spec. Use `python3 plugins/autoresearch/scripts/install_local_plugin.py` only when you also need the local plugin marketplace copy.
-
-## Wrapper CLI Notes
-
-Supported wrapper options:
-
-- `--interactive` to launch `codex` instead of `codex exec`
-- `--print-prompt` to print the generated prompt before running Codex
-- `--no-exec` to stop after printing the prompt
-- `--cd`, `--model`, `--profile`, `--sandbox` to pass runtime options through
-- `--input-file` to append additional config or context
-- `--list-commands` to print the supported autoresearch commands
-
-Everything after the wrapper options is treated as the Autoresearch command surface. The wrapper validates flags against the canonical spec before dispatching.
-
-## Compatibility Rules
-
-Codex translates Claude-only runtime concepts:
-
-| Claude | Codex |
-| --- | --- |
-| Slash commands | Plain-text command invocation |
-| `AskUserQuestion` | `request_user_input` or a concise direct question batch |
-| `.claude/skills/...` | `plugins/autoresearch/skills/...` |
-| Command registration files | Skill routing and wrapper CLI |
-
-## Shared Contract
-
-The source of truth for Codex parity is [`plugins/autoresearch/resources/autoresearch-command-spec.json`](../plugins/autoresearch/resources/autoresearch-command-spec.json). It defines:
-
-- supported commands
-- supported flags
-- required context
-- workflow reference files
-- output artifacts
-- stop conditions
-
-## Verification
-
-Useful checks while developing or installing:
+Or via transform script if self-hosting:
 
 ```bash
-python3 -m unittest tests/test_autoresearch_codex.py
-python3 plugins/autoresearch/scripts/install_local_plugin.py --help
-python3 plugins/autoresearch/scripts/autoresearch_cli.py --list-commands
-bin/autoresearch --no-exec plan Improve test coverage to 90%
+./scripts/transform.sh
+# Outputs Codex-ready files to codex/
 ```
+
+---
+
+## Invocation Syntax
+
+Codex uses `$autoresearch` prefix:
+
+| Claude Code | Codex |
+|-------------|-------|
+| `/autoresearch` | `$autoresearch` |
+| `/autoresearch:debug` | `$autoresearch debug` |
+| `/autoresearch:security` | `$autoresearch security` |
+| `/autoresearch:evals` | `$autoresearch evals` |
+| `/autoresearch:ship` | `$autoresearch ship` |
+
+All 12 commands follow the same pattern: `$autoresearch <command> [flags]`.
+
+---
+
+## All 12 Commands
+
+| Command | Default Iterations | Purpose |
+|---------|-------------------|---------|
+| `$autoresearch` | 25 | Core metric optimization loop |
+| `$autoresearch plan` | one-shot | Structured planning wizard |
+| `$autoresearch debug` | 15 | Root cause investigation |
+| `$autoresearch fix` | 20 | Root-cause-first repair |
+| `$autoresearch security` | 15 | STRIDE + OWASP audit |
+| `$autoresearch ship` | linear | Deployment pipeline |
+| `$autoresearch scenario` | 20 | Edge case + dimension exploration |
+| `$autoresearch predict` | one-shot | Multi-persona foresight |
+| `$autoresearch learn` | 10 | Documentation generation |
+| `$autoresearch reason` | 8 | Adversarial design refinement |
+| `$autoresearch probe` | 15 | Requirements interrogation |
+| `$autoresearch evals` | one-shot | Results TSV analysis |
+
+---
+
+## Usage Examples
+
+### Core loop
+
+```
+$autoresearch
+Iterations: 20
+Goal: Reduce bundle size below 200KB
+Scope: src/**/*.ts
+Metric: bundle size in KB (lower is better)
+Verify: npm run build 2>&1 | grep "First Load JS"
+Guard: npm test
+```
+
+### Debug with auto-fix
+
+```
+$autoresearch debug --fix
+Scope: src/**/*.ts
+Symptom: Payment confirmations silently failing
+Iterations: 20
+```
+
+### Security audit (CI mode)
+
+```
+$autoresearch security --fail-on critical --diff
+Iterations: 15
+```
+
+### Evals after loop
+
+```
+$autoresearch evals --format json --recommend
+```
+
+### Full chain
+
+```
+$autoresearch predict --chain scenario,debug,fix,ship
+Scope: src/**
+Goal: Full quality pipeline for v2.0 release
+```
+
+---
+
+## Universal Flags (all commands)
+
+| Flag | Purpose |
+|------|---------|
+| `Iterations: N` | Hard cap on loop iterations |
+| `Iterations: unlimited` | Run until goal or convergence |
+| `--evals` | Run evals analysis after loop |
+| `--evals-interval N` | Checkpoint analysis every N iterations |
+| `--chain <targets>` | Chain to next command(s) via handoff.json |
+
+---
+
+## File Layout (Codex)
+
+After `transform.sh` or install:
+
+```
+codex/
+├── autoresearch.sh
+├── autoresearch_debug.sh
+├── autoresearch_fix.sh
+├── autoresearch_security.sh
+├── autoresearch_ship.sh
+├── autoresearch_scenario.sh
+├── autoresearch_predict.sh
+├── autoresearch_learn.sh
+├── autoresearch_reason.sh
+├── autoresearch_probe.sh
+├── autoresearch_evals.sh
+└── autoresearch_plan.sh
+```
+
+No `autoresearch-command-spec.json` — each command file is self-contained.
+
+---
+
+## Platform Differences
+
+| Concept | Claude Code | Codex |
+|---------|-------------|-------|
+| Slash command | `/autoresearch:debug` | `$autoresearch debug` |
+| Skills dir | `.claude/skills/` | `codex/` |
+| User questions | `AskUserQuestion` | Direct question batch |
+| Chain handoff | `handoff.json` | `handoff.json` (identical) |
+| Results TSV | Same format | Same format |
+| Output dirs | Same structure | Same structure |
+
+`handoff.json` and all `*-results.tsv` files are identical across platforms — cross-platform chains work without modification.
+
+---
+
+## Related Guides
+
+- [getting-started.md](getting-started.md) — all 3 platform installs
+- [chains-and-combinations.md](chains-and-combinations.md) — pipeline patterns (syntax-agnostic)
+- [advanced-patterns.md](advanced-patterns.md) — transform.sh, CI/CD, multi-platform

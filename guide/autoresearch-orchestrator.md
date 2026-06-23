@@ -69,9 +69,14 @@ classify goal
       → record outcome: progressed / no-op / failed / blocked
       → fold handoff.json into orchestrator-state.json
       → recompute Units remaining
+  → verify hop (if a high-impact change was accepted):
+      independent held-out / adversarial re-check via reason/predict
+      before declaring DONE or entering the ship gate
   → STOP: predicate met | Plateau | ceiling | blocked
-  → ship gate (if pipeline includes ship)
+  → ship gate (if pipeline includes ship — always human-approved)
 ```
+
+The **verify hop** is the orchestrator's guard against shipping a change that games its own signal: when a high-impact change is accepted, routing flags `pending_verify` and the loop spends one extra hop re-checking the predicate on a held-out / adversarial basis (dispatched to `reason`/`predict`) before it will declare DONE or enter the ship gate. It is advisory to convergence — it never auto-approves ship, which stays human-gated. A change without that flag follows the prior routing unchanged.
 
 ### Single-Pass Dispatch
 
@@ -164,15 +169,19 @@ When the archetype is `build-feature`, no climbing metric exists yet. The orches
 
 ## Shell Command Safety
 
-Every derived shell command is safety-screened before the loop starts and again on resume from a persisted state file. The screen rejects:
+Every derived shell command is safety-screened before the loop starts, and the derived Success predicate is pinned verbatim into the state file and **re-screened on resume** (escaped-quote-aware, so a poisoned predicate cannot truncate the screen at an interior quote and slip a destructive tail past it). The screen rejects:
 
-- `rm -rf` and equivalent destructive patterns
-- `curl | sh` and pipe-to-shell patterns
+- `rm -rf` and equivalent destructive patterns, path-qualified or not (`/bin/rm`, `./rm`)
+- `curl | sh` and pipe-to-interpreter patterns (including via `xargs`)
+- Output piped to netcat (`nc`/`ncat`/`netcat`) — exfiltration
+- Raw block-device writes (`of=`/redirect into `/dev/sd*`, `/dev/nvme*`, `/dev/mmcblk*`, `/dev/md*`, `/dev/dm-*`, `/dev/mapper/*`, …)
+- Filesystem format (`mkfs`/`mke2fs`), `find … -delete`, `shred`, zero-`truncate` (`-s 0`/`--size=0`), recursive zero-mode `chmod` (`000`/`00`/`0`)
+- Path-qualified invocations of the above (`/sbin/mkfs.ext4`, `/usr/bin/find`, `/bin/chmod`)
 - Credential patterns (env vars, key files)
 - Fork bombs
 - Non-allowlisted DB URLs (reuses the regression command's anchored allowlist — `localhost`, `127.0.0.1`, container hostnames, or `_test`/`_ci` suffix; bare substrings do not qualify)
 
-Un-screened shell commands cannot be introduced mid-loop.
+Known-good commands (parser pipes like `curl | jq`, normal `find`, non-recursive `chmod`, leading-zero modes like `0755`, redirect to `/dev/null`) still pass. Un-screened shell commands cannot be introduced mid-loop.
 
 ---
 
